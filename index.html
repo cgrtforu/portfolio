@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>洪韫 Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+
+.app {
+  width: 100vw; height: 100vh;
+  display: grid;
+  grid-template-rows: 22px 28px 1fr 18px;
+  background: #6e6e6e;
+  font-family: 'Courier New', monospace;
+  color: #e8e8e8;
+  user-select: none;
+  -webkit-user-select: none;
+  image-rendering: pixelated;
+}
+
+/* ── MENU BAR ── */
+.menubar {
+  background: #505050;
+  border-bottom: 2px solid #333;
+  display: flex; align-items: center; padding: 0 4px;
+}
+.menu-item {
+  padding: 0 9px; height: 100%; display: flex; align-items: center;
+  font-size: 8px; cursor: pointer; color: #e8e8e8;
+  font-family: 'Press Start 2P', monospace;
+}
+.menu-item { position: relative; }
+.menu-item:hover { background: #1a5a9a; }
+.menu-item.open { background: #1a5a9a; }
+.menu-spacer { flex: 1; }
+
+/* 下拉菜单 */
+.dropdown {
+  display: none;
+  position: absolute;
+  top: 100%; left: 0;
+  background: #484848;
+  border: 1px solid #2a2a2a;
+  border-top: none;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
+  min-width: 160px;
+  z-index: 1000;
+  font-family: 'Courier New', monospace;
+}
+.menu-item.open .dropdown { display: block; }
+.dd-item {
+  padding: 6px 14px;
+  font-size: 10px; color: #d8d8d8;
+  cursor: pointer; white-space: nowrap;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 20px;
+}
+.dd-item:hover { background: #1a5a9a; color: #fff; }
+.dd-item.disabled { color: #666; cursor: default; }
+.dd-item.disabled:hover { background: transparent; color: #666; }
+.dd-shortcut { font-size: 9px; color: #888; }
+.dd-item.disabled .dd-shortcut { color: #555; }
+.dd-sep { height: 1px; background: #3a3a3a; margin: 3px 0; }
+.menu-en {
+  padding: 0 12px; height: 100%; display: flex; align-items: center;
+  font-size: 8px; cursor: pointer; letter-spacing: 1px;
+  border-left: 1px solid #666;
+  font-family: 'Press Start 2P', monospace;
+}
+.menu-en:hover { background: #1a5a9a; }
+
+/* About 弹窗 */
+.about-overlay {
+  display: none; position: fixed; top:0; left:0; right:0; bottom:0;
+  background: rgba(0,0,0,0.5); z-index: 2000;
+  align-items: center; justify-content: center;
+}
+.about-overlay.open { display: flex; }
+.about-box {
+  background: #f4efe6; border: 2px solid #555;
+  box-shadow: 4px 4px 0 #222;
+  width: 320px; font-family: 'Courier New', monospace;
+}
+.about-titlebar {
+  background: linear-gradient(180deg,#9aacbe,#6a7e96);
+  padding: 5px 10px; display: flex; align-items: center; gap: 6px;
+  border-bottom: 1px solid #4a5a6a;
+}
+.about-close {
+  width: 12px; height: 12px; background: #cc4040; border: 1px solid #881a1a;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 8px; color: #fff; font-weight: bold;
+}
+.about-close:hover { background: #aa1a1a; }
+.about-title { color: #fff; font-size: 9px; letter-spacing: 1px; flex:1; text-align:center; }
+.about-body { padding: 20px; text-align: center; }
+.about-name { font-size: 22px; font-weight: 900; color: #1a1a1a; letter-spacing: 4px; margin-bottom: 6px; }
+.about-ver { font-size: 9px; color: #aaa; letter-spacing: 2px; margin-bottom: 14px; }
+.about-desc { font-size: 10px; color: #555; line-height: 1.8; margin-bottom: 14px; }
+.about-made { font-size: 9px; color: #aaa; border-top: 1px solid #e0dcd4; padding-top: 10px; }
+
+/* ── TAB BAR ── */
+.optionsbar {
+  background: #747474;
+  border-bottom: 2px solid #333;
+  display: flex; align-items: flex-end; padding: 0;
+}
+.canvas-tab {
+  background: #646464; border: 1px solid #3a3a3a; border-bottom: none;
+  padding: 3px 12px 4px; font-size: 10px; color: #b0b0b0;
+  display: flex; align-items: center; gap: 8px; cursor: pointer;
+}
+.canvas-tab.active { background: #747460; color: #fff; border-bottom: 2px solid #747460; margin-bottom: -2px; }
+.tab-x { color: #888; font-size: 9px; }
+.tab-x:hover { color: #ff7070; }
+.opt-spacer { flex: 1; }
+.opt-info { font-size: 10px; color: #aaa; padding: 0 10px; align-self: center; letter-spacing: 1px; }
+
+/* ── MAIN AREA ── */
+.main-area {
+  display: grid;
+  grid-template-columns: 25vw 1fr 30px;
+  overflow: hidden;
+}
+
+/* ════════════════════════
+   LEFT PANEL — 左右分栏：调色板 | 图层
+════════════════════════ */
+.left-panel {
+  border-right: 2px solid #333;
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  overflow: hidden;
+}
+
+/* ── 左列：调色板 ── */
+.palette-col {
+  background: #4e4e4e;
+  border-right: 1px solid #333;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+
+/* 顶部小色块（2列×多行） */
+.pal-swatches {
+  flex-shrink: 0;
+  padding: 3px;
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1px;
+  background: #3a3a3a; border-bottom: 1px solid #222;
+}
+.pc { height: 20px; cursor: pointer; border: 1px solid rgba(0,0,0,0.4); }
+.pc.selected { outline: 2px solid #fff; outline-offset: 1px; }
+.pc:hover { outline: 1px solid #fff; }
+
+/* 中间灰色区域（类似 Aseprite 的暗色色板背景） */
+.pal-mid {
+  flex: 1; background: #5a5a6e;
+}
+
+/* 底部渐变色选取器 */
+.colorpicker {
+  flex-shrink: 0; padding: 4px; border-top: 1px solid #333;
+  background: #4e4e4e;
+}
+.cp-grad {
+  width: 100%; height: 42px; margin-bottom: 3px; cursor: crosshair;
+  background: linear-gradient(to bottom, rgba(0,0,0,0), #000),
+              linear-gradient(to right, #fff, #1a5a9a);
+}
+.cp-hue {
+  width: 100%; height: 6px; margin-bottom: 4px; cursor: pointer;
+  background: linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);
+}
+.cp-row { display: flex; align-items: center; gap: 3px; }
+.cp-prev { width: 18px; height: 14px; background: #1a5a9a; border: 1px solid #222; flex-shrink: 0; }
+.cp-hex {
+  flex: 1; background: #2a2a2a; border: 1px solid #1a1a1a;
+  color: #c8c8c8; font-size: 8px; padding: 1px 3px;
+  font-family: 'Press Start 2P', monospace;
+}
+
+/* ── 右列：图层 ── */
+.layers-col {
+  background: #686868;
+  display: flex; flex-direction: column; overflow: hidden;
+}
+
+.layers-head {
+  background: #484848; border-bottom: 2px solid #333;
+  padding: 4px 6px;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0;
+}
+.layers-head-title {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 7px; color: #a0a0a0; letter-spacing: 1px;
+}
+.lh-btns { display: flex; gap: 3px; }
+.lhb {
+  width: 14px; height: 13px; background: #5a5a5a; border: 1px solid #3a3a3a;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: #c0c0c0; cursor: pointer; line-height: 1;
+}
+.lhb:hover { background: #707070; }
+
+.layers-scroll { flex: 1; overflow-y: auto; overflow-x: hidden; }
+.layers-scroll::-webkit-scrollbar { width: 6px; }
+.layers-scroll::-webkit-scrollbar-track { background: #4e4e4e; }
+.layers-scroll::-webkit-scrollbar-thumb { background: #8a8a8a; }
+
+.layer-row {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 6px; cursor: pointer;
+  border-bottom: 1px solid #505050; min-height: 27px;
+}
+.layer-row:hover { background: rgba(26,90,154,0.4); }
+.layer-row.active { background: #1a5a9a; }
+.layer-row.active .l-name { color: #fff; }
+
+.l-icon { flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.l-thumb {
+  width: 26px; height: 26px; flex-shrink: 0; border: 1px solid #333;
+  image-rendering: pixelated;
+  background-image: linear-gradient(45deg,#5a5a5a 25%,transparent 25%),
+    linear-gradient(-45deg,#5a5a5a 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#5a5a5a 75%),
+    linear-gradient(-45deg,transparent 75%,#5a5a5a 75%);
+  background-size: 4px 4px; background-position: 0 0,0 2px,2px -2px,-2px 0;
+  background-color: #747474;
+}
+.l-name {
+  flex: 1; font-size: 13px; color: #d0d0d0;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  font-family: 'DotGothic16', 'Courier New', monospace;
+}
+.l-dot { width: 9px; height: 9px; border-radius: 50%; border: 1px solid #666; flex-shrink: 0; }
+.layers-sep { height: 5px; background: #484848; border-bottom: 1px solid #3a3a3a; }
+
+/* ════════════════════════
+   CANVAS
+════════════════════════ */
+.canvas-area { display: flex; flex-direction: column; overflow: hidden; }
+.canvas-viewport {
+  flex: 1; position: relative; overflow: hidden;
+  background-image:
+    linear-gradient(45deg,#878787 25%,transparent 25%),
+    linear-gradient(-45deg,#878787 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#878787 75%),
+    linear-gradient(-45deg,transparent 75%,#878787 75%);
+  background-size: 16px 16px;
+  background-position: 0 0,0 8px,8px -8px,-8px 0;
+  background-color: #9e9e9e;
+  cursor: grab;
+}
+.canvas-viewport.panning { cursor: grabbing; }
+.canvas-inner {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  transform-origin: center center;
+  pointer-events: none;
+}
+
+/* Artwork canvas (the "file" being edited) */
+.artwork {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 620px; height: 330px;
+  background: #f4efe6;
+  border: 1px solid #3a3a3a;
+  box-shadow: 0 0 0 1px #9a9a9a, 8px 8px 0 rgba(0,0,0,0.32);
+  display: flex; overflow: hidden;
+}
+
+/* Pixel grid overlay on artwork */
+.artwork::after {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+  background-size: 8px 8px;
+  pointer-events: none;
+}
+
+.art-left {
+  flex: 1; padding: 32px 28px;
+  display: flex; flex-direction: column; justify-content: center; gap: 11px;
+}
+.art-hi { font-size: 11px; color: #888; letter-spacing: 2px; text-transform: uppercase; }
+.art-name-cn { font-size: 48px; font-weight: 900; color: #1a1a1a; letter-spacing: 8px; line-height: 1; }
+.art-name-en { font-size: 12px; color: #666; letter-spacing: 5px; margin-top: -2px; }
+.art-rule { height: 2px; width: 48px; background: #1a1a1a; }
+.art-tagline { font-size: 9px; color: #aaa; letter-spacing: 1px; border-left: 2px solid #ccc; padding-left: 8px; }
+.art-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+.art-tag {
+  border: 1px solid #bbb; padding: 2px 9px;
+  font-size: 9px; color: #666; letter-spacing: 1px; background: #fff;
+}
+.art-edu { font-size: 9px; color: #999; letter-spacing: 1px; line-height: 2; }
+.art-edu-row { display: flex; align-items: center; gap: 6px; }
+
+.art-right {
+  width: 188px; flex-shrink: 0;
+  border-left: 1px dashed #ccc;
+  background-image:
+    linear-gradient(45deg,#c4c0b8 25%,transparent 25%),
+    linear-gradient(-45deg,#c4c0b8 25%,transparent 25%),
+    linear-gradient(45deg,transparent 75%,#c4c0b8 75%),
+    linear-gradient(-45deg,transparent 75%,#c4c0b8 75%);
+  background-size: 8px 8px;
+  background-position: 0 0,0 4px,4px -4px,-4px 0;
+  background-color: #d0ccca;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+}
+.art-photo-box {
+  width: 108px; height: 130px; border: 2px dashed #a0a0a0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  background: rgba(244,239,230,0.45);
+}
+.art-photo-lbl { font-size: 7px; color: #a0a0a0; letter-spacing: 2px; text-align: center; }
+
+/* Canvas hint */
+.canvas-hint {
+  position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
+  font-size: 9px; color: rgba(255,255,255,0.4); letter-spacing: 2px; pointer-events: none; white-space: nowrap;
+}
+
+/* ════════════════════════
+   CANVAS PANELS（直接切换）
+════════════════════════ */
+.canvas-panel {
+  display: none;
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  background: #f4efe6;
+  border: 1px solid #3a3a3a;
+  box-shadow: 0 0 0 1px #9a9a9a, 8px 8px 0 rgba(0,0,0,0.32);
+  overflow: hidden;
+  pointer-events: all;
+}
+.canvas-panel.active { display: flex; }
+
+/* 面板内通用样式 */
+.panel-head {
+  background: #e8e4dc; border-bottom: 2px solid #ccc;
+  padding: 12px 24px 10px;
+}
+.panel-label { font-size: 9px; color: #aaa; letter-spacing: 3px; margin-bottom: 4px; font-family: 'Press Start 2P', monospace; }
+.panel-title { font-size: 22px; font-weight: 900; color: #1a1a1a; letter-spacing: 3px; }
+.panel-body { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.panel-body::-webkit-scrollbar { width: 5px; }
+.panel-body::-webkit-scrollbar-thumb { background: #ccc; }
+
+/* 卡片 */
+.p-card {
+  background: #fff; border: 1px solid #ddd;
+  padding: 16px 18px; margin-bottom: 14px;
+  box-shadow: 2px 2px 0 #e0e0e0;
+}
+.p-card-school { font-size: 14px; font-weight: bold; color: #1a1a1a; margin-bottom: 3px; }
+.p-card-deg { font-size: 11px; color: #444; margin-bottom: 2px; }
+.p-card-date { font-size: 9px; color: #aaa; margin-bottom: 8px; letter-spacing: 1px; }
+.p-card-desc { font-size: 10px; color: #555; line-height: 1.8; }
+.p-card-tags { margin-top: 8px; }
+.p-tag { display: inline-block; border: 1px solid #ccc; background: #f8f8f8; color: #666; font-size: 9px; padding: 2px 7px; margin: 2px 2px 0 0; }
+.p-rule { height: 1px; background: #e0dcd4; margin: 12px 0; }
+
+/* 两列布局 */
+.p-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+/* 时间线 */
+.p-timeline { position: relative; padding-left: 18px; }
+.p-timeline::before { content:''; position:absolute; left:6px; top:0; bottom:0; width:2px; background:#ddd; }
+.p-titem { position: relative; margin-bottom: 18px; }
+.p-titem::before { content:''; position:absolute; left:-15px; top:5px; width:8px; height:8px; background:#1a5a9a; border:2px solid #fff; outline:1px solid #1a5a9a; }
+.p-tco { font-size: 13px; font-weight: bold; color: #1a1a1a; margin-bottom: 2px; }
+.p-trole { font-size: 10px; color: #444; margin-bottom: 2px; }
+.p-tdate { font-size: 9px; color: #aaa; margin-bottom: 6px; }
+.p-tdesc { font-size: 10px; color: #555; line-height: 1.8; }
+
+/* ════════════════════════
+   RIGHT TOOLS
+════════════════════════ */
+.right-tools {
+  background: #686868; border-left: 2px solid #333;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 3px 0; gap: 1px; overflow: hidden;
+}
+.tbtn {
+  width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; border: 1px solid transparent; flex-shrink: 0;
+}
+.tbtn:hover { background: #7e7e7e; border: 1px solid #444; }
+.tbtn.on { background: #1a5a9a; border: 1px solid #0a3a7a; }
+.tsep { width: 20px; height: 2px; background: #333; margin: 2px 0; flex-shrink: 0; }
+
+/* ════════════════════════
+   STATUS BAR
+════════════════════════ */
+.statusbar {
+  background: #505050; border-top: 2px solid #333;
+  display: flex; align-items: center; padding: 0 8px; gap: 18px;
+}
+.st { font-size: 7px; color: #a8a8a8; font-family: 'Press Start 2P', monospace; }
+.st-sp { flex: 1; }
+</style>
+</head>
+<body>
+
+<!-- ══ PIXEL SVG ICON DEFINITIONS ══ -->
+<svg style="display:none">
+  <!-- Eye (open) -->
+  <symbol id="ico-eye" viewBox="0 0 11 7">
+    <rect x="3" y="0" width="5" height="1" fill="#b0b0b0"/>
+    <rect x="1" y="1" width="9" height="1" fill="#b0b0b0"/>
+    <rect x="0" y="2" width="11" height="3" fill="#b0b0b0"/>
+    <rect x="1" y="5" width="9" height="1" fill="#b0b0b0"/>
+    <rect x="3" y="6" width="5" height="1" fill="#b0b0b0"/>
+    <rect x="4" y="2" width="3" height="3" fill="#2a2a2a"/>
+    <rect x="4" y="2" width="1" height="1" fill="#888"/>
+  </symbol>
+  <!-- Lock -->
+  <symbol id="ico-lock" viewBox="0 0 7 9">
+    <rect x="2" y="0" width="3" height="1" fill="#c8a020"/>
+    <rect x="1" y="0" width="1" height="3" fill="#c8a020"/>
+    <rect x="5" y="0" width="1" height="3" fill="#c8a020"/>
+    <rect x="0" y="3" width="7" height="6" fill="#c8a020"/>
+    <rect x="1" y="4" width="5" height="4" fill="#a07810"/>
+    <rect x="3" y="5" width="1" height="2" fill="#5a3800"/>
+    <rect x="2" y="5" width="3" height="1" fill="#5a3800"/>
+    <rect x="1" y="4" width="1" height="1" fill="#e8c030"/>
+  </symbol>
+  <!-- Link / chain dots -->
+  <symbol id="ico-link" viewBox="0 0 9 5">
+    <rect x="0" y="0" width="3" height="5" fill="#888"/>
+    <rect x="1" y="1" width="1" height="3" fill="#5a5a5a"/>
+    <rect x="3" y="2" width="3" height="1" fill="#666"/>
+    <rect x="6" y="0" width="3" height="5" fill="#888"/>
+    <rect x="7" y="1" width="1" height="3" fill="#5a5a5a"/>
+  </symbol>
+  <!-- Pencil tool -->
+  <symbol id="ico-pencil" viewBox="0 0 10 10">
+    <rect x="6" y="0" width="2" height="1" fill="#c8c8c8"/>
+    <rect x="5" y="1" width="3" height="1" fill="#b0b0b0"/>
+    <rect x="4" y="2" width="3" height="2" fill="#a0a0a0"/>
+    <rect x="3" y="4" width="3" height="2" fill="#909090"/>
+    <rect x="2" y="6" width="3" height="2" fill="#808080"/>
+    <rect x="1" y="8" width="2" height="1" fill="#f0c040"/>
+    <rect x="1" y="9" width="2" height="1" fill="#d0a020"/>
+    <rect x="7" y="0" width="2" height="2" fill="#e0e0e0"/>
+  </symbol>
+  <!-- Eraser tool -->
+  <symbol id="ico-eraser" viewBox="0 0 10 10">
+    <rect x="1" y="4" width="8" height="4" fill="#e0b0a0"/>
+    <rect x="1" y="4" width="8" height="1" fill="#c09080"/>
+    <rect x="1" y="7" width="8" height="1" fill="#b08070"/>
+    <rect x="4" y="5" width="3" height="2" fill="#f8f8f8"/>
+    <rect x="1" y="8" width="8" height="1" fill="#808080"/>
+    <rect x="0" y="9" width="10" height="1" fill="#606060"/>
+  </symbol>
+  <!-- Fill bucket -->
+  <symbol id="ico-fill" viewBox="0 0 10 10">
+    <rect x="1" y="0" width="4" height="1" fill="#9090c0"/>
+    <rect x="0" y="1" width="1" height="5" fill="#9090c0"/>
+    <rect x="4" y="1" width="1" height="5" fill="#9090c0"/>
+    <rect x="1" y="5" width="4" height="1" fill="#9090c0"/>
+    <rect x="2" y="6" width="3" height="1" fill="#7070a0"/>
+    <rect x="3" y="7" width="2" height="1" fill="#5050a0"/>
+    <rect x="5" y="5" width="5" height="5" fill="#e8622a"/>
+    <rect x="5" y="5" width="5" height="1" fill="#c04010"/>
+    <rect x="5" y="9" width="5" height="1" fill="#c04010"/>
+  </symbol>
+  <!-- Marquee select -->
+  <symbol id="ico-select" viewBox="0 0 10 10">
+    <rect x="0" y="0" width="2" height="1" fill="#d0d0d0"/>
+    <rect x="4" y="0" width="2" height="1" fill="#d0d0d0"/>
+    <rect x="8" y="0" width="2" height="1" fill="#d0d0d0"/>
+    <rect x="0" y="0" width="1" height="10" fill="#d0d0d0"/>
+    <rect x="9" y="0" width="1" height="10" fill="#d0d0d0"/>
+    <rect x="0" y="9" width="2" height="1" fill="#d0d0d0"/>
+    <rect x="4" y="9" width="2" height="1" fill="#d0d0d0"/>
+    <rect x="8" y="9" width="2" height="1" fill="#d0d0d0"/>
+    <rect x="0" y="4" width="1" height="2" fill="#d0d0d0"/>
+    <rect x="9" y="4" width="1" height="2" fill="#d0d0d0"/>
+  </symbol>
+  <!-- Zoom -->
+  <symbol id="ico-zoom" viewBox="0 0 10 10">
+    <rect x="1" y="1" width="6" height="1" fill="#c0c0c0"/>
+    <rect x="1" y="6" width="6" height="1" fill="#c0c0c0"/>
+    <rect x="0" y="2" width="1" height="4" fill="#c0c0c0"/>
+    <rect x="6" y="2" width="1" height="4" fill="#c0c0c0"/>
+    <rect x="1" y="2" width="5" height="4" fill="#88aacc"/>
+    <rect x="3" y="3" width="1" height="2" fill="#fff"/>
+    <rect x="2" y="4" width="3" height="1" fill="#fff"/>
+    <rect x="6" y="6" width="1" height="1" fill="#a0a0a0"/>
+    <rect x="7" y="7" width="1" height="1" fill="#a0a0a0"/>
+    <rect x="8" y="8" width="2" height="2" fill="#808080"/>
+  </symbol>
+  <!-- Move (cross arrows) -->
+  <symbol id="ico-move" viewBox="0 0 10 10">
+    <rect x="4" y="0" width="2" height="2" fill="#d0d0d0"/>
+    <rect x="4" y="8" width="2" height="2" fill="#d0d0d0"/>
+    <rect x="0" y="4" width="2" height="2" fill="#d0d0d0"/>
+    <rect x="8" y="4" width="2" height="2" fill="#d0d0d0"/>
+    <rect x="3" y="2" width="4" height="6" fill="#c0c0c0"/>
+    <rect x="2" y="3" width="1" height="4" fill="#c0c0c0"/>
+    <rect x="7" y="3" width="1" height="4" fill="#c0c0c0"/>
+    <rect x="4" y="4" width="2" height="2" fill="#888"/>
+  </symbol>
+  <!-- Eyedropper -->
+  <symbol id="ico-dropper" viewBox="0 0 10 10">
+    <rect x="6" y="0" width="3" height="1" fill="#d0a0d0"/>
+    <rect x="5" y="1" width="4" height="1" fill="#c090c0"/>
+    <rect x="4" y="2" width="3" height="1" fill="#b080b0"/>
+    <rect x="3" y="3" width="3" height="1" fill="#a070a0"/>
+    <rect x="2" y="4" width="3" height="1" fill="#9060a0"/>
+    <rect x="1" y="5" width="3" height="1" fill="#8050a0"/>
+    <rect x="0" y="6" width="3" height="1" fill="#7040a0"/>
+    <rect x="0" y="7" width="2" height="2" fill="#e8622a"/>
+    <rect x="0" y="9" width="2" height="1" fill="#b04010"/>
+  </symbol>
+  <!-- Contour / outline -->
+  <symbol id="ico-contour" viewBox="0 0 10 10">
+    <rect x="1" y="5" width="1" height="4" fill="#c0c0c0"/>
+    <rect x="2" y="3" width="1" height="2" fill="#c0c0c0"/>
+    <rect x="3" y="1" width="1" height="2" fill="#c0c0c0"/>
+    <rect x="4" y="0" width="2" height="1" fill="#c0c0c0"/>
+    <rect x="6" y="1" width="1" height="2" fill="#c0c0c0"/>
+    <rect x="7" y="3" width="1" height="2" fill="#c0c0c0"/>
+    <rect x="8" y="5" width="1" height="4" fill="#c0c0c0"/>
+    <rect x="1" y="9" width="8" height="1" fill="#c0c0c0"/>
+    <rect x="4" y="3" width="2" height="4" fill="#888"/>
+  </symbol>
+  <!-- Small diploma icon for artwork -->
+  <symbol id="ico-diploma" viewBox="0 0 10 8">
+    <rect x="0" y="1" width="8" height="6" fill="#f0d870"/>
+    <rect x="0" y="1" width="8" height="1" fill="#d0b840"/>
+    <rect x="0" y="6" width="8" height="1" fill="#d0b840"/>
+    <rect x="1" y="3" width="5" height="1" fill="#a08020"/>
+    <rect x="1" y="5" width="3" height="1" fill="#a08020"/>
+    <rect x="7" y="2" width="3" height="4" fill="#e05050"/>
+    <rect x="8" y="1" width="1" height="1" fill="#c03030"/>
+  </symbol>
+</svg>
+
+<div class="app">
+
+<!-- ── MENU BAR ── -->
+<div class="menubar" id="menubar">
+
+  <div class="menu-item" data-menu="file">File
+    <div class="dropdown">
+      <div class="dd-item" id="dd-download">下载简历 <span class="dd-shortcut">⌘S</span></div>
+      <div class="dd-sep"></div>
+      <div class="dd-item disabled">Print <span class="dd-shortcut">⌘P</span></div>
+      <div class="dd-item disabled">Export PNG <span class="dd-shortcut">⌘E</span></div>
+    </div>
+  </div>
+
+  <div class="menu-item" data-menu="edit">Edit
+    <div class="dropdown">
+      <div class="dd-item disabled">Undo <span class="dd-shortcut">⌘Z</span></div>
+      <div class="dd-item disabled">Redo <span class="dd-shortcut">⌘Y</span></div>
+      <div class="dd-sep"></div>
+      <div class="dd-item disabled">Copy <span class="dd-shortcut">⌘C</span></div>
+      <div class="dd-item disabled">Paste <span class="dd-shortcut">⌘V</span></div>
+    </div>
+  </div>
+
+  <div class="menu-item" data-menu="stroke">Stroke
+    <div class="dropdown">
+      <div class="dd-item disabled">Pixel Perfect</div>
+      <div class="dd-item disabled">Anti-aliasing</div>
+      <div class="dd-sep"></div>
+      <div class="dd-item disabled">Symmetry Mode</div>
+    </div>
+  </div>
+
+  <div class="menu-item" data-menu="layer">Layer
+    <div class="dropdown" id="dd-layer-menu">
+      <div class="dd-item" data-target="home">关于我</div>
+      <div class="dd-item" data-target="education">学历</div>
+      <div class="dd-item" data-target="thesis">毕业设计</div>
+      <div class="dd-item" data-target="work">工作经历</div>
+      <div class="dd-item" data-target="projects">项目</div>
+      <div class="dd-item" data-target="skills">技能</div>
+      <div class="dd-item" data-target="contact">联系我</div>
+    </div>
+  </div>
+
+  <div class="menu-item" data-menu="frame">Frame
+    <div class="dropdown">
+      <div class="dd-item disabled">New Frame</div>
+      <div class="dd-item disabled">Delete Frame</div>
+      <div class="dd-sep"></div>
+      <div class="dd-item disabled">Play Animation <span class="dd-shortcut">↵</span></div>
+    </div>
+  </div>
+
+  <div class="menu-item" data-menu="select">Select
+    <div class="dropdown">
+      <div class="dd-item disabled">All <span class="dd-shortcut">⌘A</span></div>
+      <div class="dd-item disabled">Deselect <span class="dd-shortcut">⌘D</span></div>
+      <div class="dd-item disabled">Invert</div>
+    </div>
+  </div>
+
+  <div class="menu-item" data-menu="view">View
+    <div class="dropdown">
+      <div class="dd-item" id="dd-zoom-in">放大 <span class="dd-shortcut">⌘+</span></div>
+      <div class="dd-item" id="dd-zoom-out">缩小 <span class="dd-shortcut">⌘-</span></div>
+      <div class="dd-item" id="dd-zoom-reset">重置画布 <span class="dd-shortcut">⌘0</span></div>
+      <div class="dd-sep"></div>
+      <div class="dd-item disabled">Show Grid <span class="dd-shortcut">⌘G</span></div>
+    </div>
+  </div>
+
+  <div class="menu-item" data-menu="help">Help
+    <div class="dropdown">
+      <div class="dd-item" id="dd-about">About This Portfolio</div>
+      <div class="dd-sep"></div>
+      <div class="dd-item disabled">Documentation</div>
+    </div>
+  </div>
+
+  <span class="menu-spacer"></span>
+  <span class="menu-en">/ EN</span>
+</div>
+
+<!-- About 弹窗 -->
+<div class="about-overlay" id="about-overlay">
+  <div class="about-box">
+    <div class="about-titlebar">
+      <div class="about-close" id="about-close">x</div>
+      <div class="about-title">About</div>
+      <div style="width:12px"></div>
+    </div>
+    <div class="about-body">
+      <div class="about-name">洪韫.px</div>
+      <div class="about-ver">VERSION 1.0.0 · 2026</div>
+      <div class="about-made">Vibe coded with Claude Code ♥</div>
+    </div>
+  </div>
+</div>
+
+<!-- ── TAB BAR ── -->
+<div class="optionsbar">
+  <div class="canvas-tab active"><span>Home</span><span class="tab-x">x</span></div>
+  <div class="canvas-tab"><span>HongYun_Portfolio.px</span><span class="tab-x">x</span></div>
+  <span class="opt-spacer"></span>
+  <span class="opt-info">100%  PixelPerfect</span>
+</div>
+
+<!-- ── MAIN AREA ── -->
+<div class="main-area">
+
+  <!-- ░░ LEFT PANEL：调色板列 + 图层列 ░░ -->
+  <div class="left-panel">
+
+    <!-- ── 左列：调色板 ── -->
+    <div class="palette-col">
+      <div class="pal-swatches">
+        <div class="pc" style="background:#e83020"></div><div class="pc" style="background:#e89020"></div>
+        <div class="pc" style="background:#e8d020"></div><div class="pc" style="background:#40b840"></div>
+        <div class="pc" style="background:#20a8e8"></div><div class="pc" style="background:#2030c8"></div>
+        <div class="pc" style="background:#9020c8"></div><div class="pc" style="background:#e820a0"></div>
+        <div class="pc" style="background:#f0a090"></div><div class="pc" style="background:#f0d090"></div>
+        <div class="pc" style="background:#f0f0a0"></div><div class="pc" style="background:#a0e8a0"></div>
+        <div class="pc" style="background:#a0d8f0"></div><div class="pc" style="background:#a0a8f0"></div>
+        <div class="pc" style="background:#703010"></div><div class="pc" style="background:#106010"></div>
+        <div class="pc" style="background:#1a1a1a"></div><div class="pc" style="background:#484848"></div>
+        <div class="pc" style="background:#787878"></div><div class="pc" style="background:#d0d0d0"></div>
+        <div class="pc" style="background:#fff"></div><div class="pc" style="background:#1a5a9a"></div>
+      </div>
+      <div class="pal-mid"></div>
+      <div class="colorpicker">
+        <div class="cp-grad"></div>
+        <div class="cp-hue"></div>
+        <div class="cp-row">
+          <div class="cp-prev"></div>
+          <input class="cp-hex" value="#1A5A9A" readonly>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 右列：图层 ── -->
+    <div class="layers-col">
+      <div class="layers-head">
+        <span class="layers-head-title">LAYERS</span>
+        <div class="lh-btns"><div class="lhb">+</div><div class="lhb">-</div></div>
+      </div>
+      <div class="layers-scroll">
+
+        <div class="layer-row active" data-target="home">
+          <span class="l-icon"><svg width="13" height="8" style="image-rendering:pixelated"><use href="#ico-eye"/></svg></span>
+          <span class="l-icon"><svg width="8" height="11" style="image-rendering:pixelated"><use href="#ico-lock"/></svg></span>
+          <span class="l-icon"><svg width="10" height="5" style="image-rendering:pixelated"><use href="#ico-link"/></svg></span>
+          <div class="l-thumb" style="background:#f4efe6;background-image:none;border-color:#aaa;"></div>
+          <span class="l-name">关于我</span>
+          <div class="l-dot" id="init-dot"></div>
+        </div>
+
+        <div class="layers-sep"></div>
+
+        <div class="layer-row" data-target="education">
+          <span class="l-icon"><svg width="13" height="8" style="image-rendering:pixelated"><use href="#ico-eye"/></svg></span>
+          <span class="l-icon"><svg width="8" height="11" style="image-rendering:pixelated"><use href="#ico-lock"/></svg></span>
+          <span class="l-icon"><svg width="10" height="5" style="image-rendering:pixelated"><use href="#ico-link"/></svg></span>
+          <div class="l-thumb" style="background:#f0d040;background-image:none;border-color:#a09010;"></div>
+          <span class="l-name">学历</span>
+          <div class="l-dot"></div>
+        </div>
+        <div class="layer-row" data-target="thesis">
+          <span class="l-icon"><svg width="13" height="8" style="image-rendering:pixelated"><use href="#ico-eye"/></svg></span>
+          <span class="l-icon"><svg width="8" height="11" style="image-rendering:pixelated"><use href="#ico-lock"/></svg></span>
+          <span class="l-icon"><svg width="10" height="5" style="image-rendering:pixelated"><use href="#ico-link"/></svg></span>
+          <div class="l-thumb" style="background:#e0e0e0;background-image:none;border-color:#888;"></div>
+          <span class="l-name">毕业设计</span>
+          <div class="l-dot"></div>
+        </div>
+        <div class="layer-row" data-target="work">
+          <span class="l-icon"><svg width="13" height="8" style="image-rendering:pixelated"><use href="#ico-eye"/></svg></span>
+          <span class="l-icon"><svg width="8" height="11" style="image-rendering:pixelated"><use href="#ico-lock"/></svg></span>
+          <span class="l-icon"><svg width="10" height="5" style="image-rendering:pixelated"><use href="#ico-link"/></svg></span>
+          <div class="l-thumb" style="background:#f0b830;background-image:none;border-color:#a07810;"></div>
+          <span class="l-name">工作经历</span>
+          <div class="l-dot"></div>
+        </div>
+        <div class="layer-row" data-target="projects">
+          <span class="l-icon"><svg width="13" height="8" style="image-rendering:pixelated"><use href="#ico-eye"/></svg></span>
+          <span class="l-icon"><svg width="8" height="11" style="image-rendering:pixelated"><use href="#ico-lock"/></svg></span>
+          <span class="l-icon"><svg width="10" height="5" style="image-rendering:pixelated"><use href="#ico-link"/></svg></span>
+          <div class="l-thumb" style="background:#60b8e8;background-image:none;border-color:#2878a8;"></div>
+          <span class="l-name">项目</span>
+          <div class="l-dot"></div>
+        </div>
+        <div class="layer-row" data-target="skills">
+          <span class="l-icon"><svg width="13" height="8" style="image-rendering:pixelated"><use href="#ico-eye"/></svg></span>
+          <span class="l-icon"><svg width="8" height="11" style="image-rendering:pixelated"><use href="#ico-lock"/></svg></span>
+          <span class="l-icon"><svg width="10" height="5" style="image-rendering:pixelated"><use href="#ico-link"/></svg></span>
+          <div class="l-thumb" style="background:#7080e0;background-image:none;border-color:#3040a0;"></div>
+          <span class="l-name">技能</span>
+          <div class="l-dot"></div>
+        </div>
+        <div class="layer-row" data-target="contact">
+          <span class="l-icon"><svg width="13" height="8" style="image-rendering:pixelated"><use href="#ico-eye"/></svg></span>
+          <span class="l-icon"><svg width="8" height="11" style="image-rendering:pixelated"><use href="#ico-lock"/></svg></span>
+          <span class="l-icon"><svg width="10" height="5" style="image-rendering:pixelated"><use href="#ico-link"/></svg></span>
+          <div class="l-thumb" style="background:#e86060;background-image:none;border-color:#a02020;"></div>
+          <span class="l-name">联系我</span>
+          <div class="l-dot"></div>
+        </div>
+
+      </div><!-- /layers-scroll -->
+    </div><!-- /layers-col -->
+
+  </div><!-- /left-panel -->
+
+  <!-- ░░ CANVAS AREA ░░ -->
+  <div class="canvas-area">
+    <div class="canvas-viewport" id="canvas-viewport">
+      <div class="canvas-inner" id="canvas-inner">
+
+      <!-- ① 关于我 -->
+      <div class="canvas-panel active artwork" id="panel-home">
+        <div class="art-left">
+          <div class="art-hi">Hi, 我是</div>
+          <div class="art-name-cn">洪韫</div>
+          <div class="art-name-en">YUN HONG</div>
+          <div class="art-rule"></div>
+          <div class="art-tagline">认知科学 × 心理学背景，对人和 AI 都有好奇心，习惯从「为什么」出发思考问题。</div>
+          <div class="art-tags">
+            <span class="art-tag">用户研究</span>
+            <span class="art-tag">产品经理</span>
+            <span class="art-tag">AI 产品</span>
+          </div>
+          <div class="art-edu">
+            <div class="art-edu-row"><svg width="12" height="10" style="image-rendering:pixelated"><use href="#ico-diploma"/></svg><span>UCL &middot; MSc 认知行为科学</span></div>
+            <div class="art-edu-row"><svg width="12" height="10" style="image-rendering:pixelated"><use href="#ico-diploma"/></svg><span>Durham &middot; BSc 心理学（荣誉）</span></div>
+          </div>
+        </div>
+        <div class="art-right">
+          <div class="art-photo-box">
+            <svg width="40" height="40" viewBox="0 0 10 10" style="image-rendering:pixelated;opacity:0.3"><rect x="2" y="1" width="6" height="5" fill="#888"/><rect x="3" y="2" width="4" height="3" fill="#aaa"/><rect x="1" y="7" width="8" height="2" fill="#888"/></svg>
+            <div class="art-photo-lbl">PHOTO.PNG<br>[ 待上传 ]</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ② 学历 -->
+      <div class="canvas-panel" id="panel-education" style="width:640px;flex-direction:column;">
+        <div class="panel-head">
+          <div class="panel-label">LAYER / 学历</div>
+          <div class="panel-title">Education</div>
+        </div>
+        <div class="panel-body">
+          <div class="p-cols">
+            <div class="p-card">
+              <div class="p-card-school">UCL — London</div>
+              <div class="p-card-deg">MSc 认知行为科学</div>
+              <div class="p-card-date">2022.09 — 2024.01</div>
+              <div class="p-rule"></div>
+              <div class="p-card-desc">研究方向：风险沟通 · 决策心理 · 用户认知</div>
+              <div class="p-card-tags"><span class="p-tag">HCI</span><span class="p-tag">UX Research</span><span class="p-tag">Cognitive Science</span></div>
+            </div>
+            <div class="p-card">
+              <div class="p-card-school">Durham — UK</div>
+              <div class="p-card-deg">BSc 心理学（荣誉）</div>
+              <div class="p-card-date">2019.09 — 2022.06</div>
+              <div class="p-rule"></div>
+              <div class="p-card-desc">实验心理学 · 认知神经科学 · 统计方法</div>
+              <div class="p-card-tags"><span class="p-tag">Psychology</span><span class="p-tag">SPSS</span><span class="p-tag">R Studio</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ③ 毕业设计 -->
+      <div class="canvas-panel" id="panel-thesis" style="width:640px;flex-direction:column;">
+        <div class="panel-head">
+          <div class="panel-label">LAYER / 毕业设计</div>
+          <div class="panel-title">Thesis</div>
+        </div>
+        <div class="panel-body">
+          <div class="p-card">
+            <div class="p-card-school">硕士论文 · UCL</div>
+            <div class="p-card-deg">天气预警中非焦点影响的公众感知研究</div>
+            <div class="p-card-date">合作机构：Met Office (UK) · 2023</div>
+            <div class="p-rule"></div>
+            <div class="p-card-desc">英国 Met Office 发布天气预警时，除主要影响外还包含次要影响（non-focal impacts）。本研究探索公众如何理解这些次要影响的发生概率——即人们是否真正读懂了预警想传达的信息。<br><br>通过两组实验（探索性 + 验证性）发现：公众对非焦点影响的感知存在一定规律，但不同类型预警下的理解差异显著，说明当前预警措辞存在歧义，有优化空间。</div>
+            <div class="p-card-tags" style="margin-top:8px;"><span class="p-tag">风险沟通</span><span class="p-tag">实验设计</span><span class="p-tag">认知心理学</span></div>
+          </div>
+          <div class="p-card">
+            <div class="p-card-school">本科论文 · Durham</div>
+            <div class="p-card-deg">空间边界对空间记忆的影响研究</div>
+            <div class="p-card-date">148名参与者 · 虚拟环境实验 · 2022</div>
+            <div class="p-rule"></div>
+            <div class="p-card-desc">研究「穿过门」这个日常动作是否会影响人的空间记忆。在虚拟环境中招募148名参与者，采用2×2混合实验设计，模拟有门/无门、不同参照系条件下的空间学习。<br><br>结果发现：穿越空间边界（门）对全局空间表征的形成有显著影响，但空间参照系的干扰效应未被数据支持。</div>
+            <div class="p-card-tags" style="margin-top:8px;"><span class="p-tag">认知神经科学</span><span class="p-tag">虚拟实验</span><span class="p-tag">空间记忆</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ④ 工作经历 -->
+      <div class="canvas-panel" id="panel-work" style="width:640px;flex-direction:column;">
+        <div class="panel-head">
+          <div class="panel-label">LAYER / 工作经历</div>
+          <div class="panel-title">Work Experience</div>
+        </div>
+        <div class="panel-body">
+          <div class="p-timeline">
+            <div class="p-titem">
+              <div class="p-tco">杭州今元标矩科技有限公司</div>
+              <div class="p-trole">培训文化发展专员</div>
+              <div class="p-tdate">2025.08 — 至今 · 杭州</div>
+              <div class="p-tdesc">负责培训与企业文化两大板块，独立产出 SOP、课件、方案文稿；主导外派培训及司龄文化项目全流程落地；自主探索 AI 工作流自动化，搭建并测试自动化插件，简化团队日常流程。</div>
+            </div>
+            <div class="p-titem">
+              <div class="p-tco">北京创业酵母管理咨询</div>
+              <div class="p-trole">学习顾问</div>
+              <div class="p-tdate">2025.05 — 2025.08 · 北京</div>
+              <div class="p-tdesc">通过访谈与调研识别企业客户在战略、组织、绩效及人才管理方面的核心痛点，形成组织画像；根据需求设计个性化学习路径，输出解决方案并协调课程落地。8月会销门票销量排名团队第二，获当月业绩激励奖。</div>
+            </div>
+            <div class="p-titem">
+              <div class="p-tco">杭州旭化成氨纶</div>
+              <div class="p-trole">营业部行政实习生</div>
+              <div class="p-tdate">2021.07 — 2021.09 · 杭州</div>
+              <div class="p-tdesc">协助销售部门日常运营，负责 PPT 及中文宣传册制作、产品市场数据整理与竞争分析。</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑤ 项目 -->
+      <div class="canvas-panel" id="panel-projects" style="width:640px;flex-direction:column;">
+        <div class="panel-head">
+          <div class="panel-label">LAYER / 项目</div>
+          <div class="panel-title">Projects</div>
+        </div>
+        <div class="panel-body">
+          <div class="p-card">
+            <div class="p-card-school">星火计划 · 今元集团海外人才外派项目</div>
+            <div class="p-card-date">2025.08 — 至今 · 杭州今元标矩科技</div>
+            <div class="p-rule"></div>
+            <div class="p-card-desc">
+              公司海外业务扩张（东南亚为主），需建立将内部优秀员工输送至海外子公司的完整体系。项目从零开始，无参考案例。<br><br>
+              独立设计并落地完整外派管理体系，涵盖三个阶段：<br>
+              · <b>选拔</b>：制定岗位胜任力标准、内部选拔流程与评估表<br>
+              · <b>培训与认证</b>：设计培训计划、认证考核标准与述职评估流程，认证结果由集团 CEO 终审<br>
+              · <b>外派管理</b>：制定外派协议、欢送仪式 SOP、关怀机制与召回流程<br><br>
+              共产出 7 份配套文件，体系已落地运行，有人员实际完成认证并成功外派。
+            </div>
+            <div class="p-card-tags" style="margin-top:10px;">
+              <span class="p-tag">系统设计</span>
+              <span class="p-tag">流程梳理</span>
+              <span class="p-tag">跨文化培训</span>
+              <span class="p-tag">0→1 落地</span>
+            </div>
+          </div>
+          <div class="p-card">
+            <div class="p-card-school">司龄文化建设 · 今元集团员工周年体系重构</div>
+            <div class="p-card-date">2025.08 — 至今 · 杭州今元标矩科技</div>
+            <div class="p-rule"></div>
+            <div class="p-card-desc">
+              公司成立11年，原有1-10周年海报及祝福体系需要整体升级延续。<br><br>
+              · <b>视觉设计</b>：原创「航海」主题概念（11-20年），独立构思视觉方向并指导供应商落地，完成全套1-20周年员工周年海报<br>
+              · <b>执行体系设计</b>：从零设计员工周年祝福 SOP，采用「必须做 / 禁止做 / 自由积木」三层结构，按普通员工 / 关键人才 / 管理层三类差异化执行<br><br>
+              覆盖约 900-1000 名员工，体系已落地，现由 HRBP 团队执行。另开发配套 Agent Skill，输入员工信息自动生成个性化话术，进一步降低执行门槛。
+            </div>
+            <div class="p-card-tags" style="margin-top:10px;">
+              <span class="p-tag">视觉设计</span>
+              <span class="p-tag">系统设计</span>
+              <span class="p-tag">0→1 落地</span>
+              <span class="p-tag">员工体验</span>
+            </div>
+          </div>
+          <div class="p-card">
+            <div class="p-card-school">Vibe Coding · AI 工具探索</div>
+            <div class="p-rule"></div>
+            <div class="p-card-desc">
+              · <b>司龄话术生成 Agent Skill</b>（Codex）<br>
+              配套司龄文化体系使用。输入员工姓名、司龄、关键词，自动生成个性化周年祝福话术，现由 HRBP 团队日常使用。<br><br>
+              · <b>公司知识库原型</b>（Dify）<br>
+              使用 Dify 搭建公司内部知识库，上传内部文档实现 AI 问答检索，自主探索 RAG 应用落地可行性。<br><br>
+              · <b>OA 请款自动填表 Chrome 插件</b><br>
+              识别公司内部 OA 请款页面，自动填充表单字段，减少重复录入。Vibe coding 解决自己的实际痛点。
+            </div>
+            <div class="p-card-tags" style="margin-top:10px;">
+              <span class="p-tag">Vibe Coding</span>
+              <span class="p-tag">AI Agent</span>
+              <span class="p-tag">RAG</span>
+              <span class="p-tag">Chrome Extension</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑥ 技能 -->
+      <div class="canvas-panel" id="panel-skills" style="width:640px;flex-direction:column;">
+        <div class="panel-head">
+          <div class="panel-label">LAYER / 技能</div>
+          <div class="panel-title">Skills</div>
+        </div>
+        <div class="panel-body">
+          <div class="p-cols">
+            <div>
+              <div class="p-card">
+                <div class="p-card-school">设计</div>
+                <div class="p-rule"></div>
+                <div class="p-card-desc">Figma ●●●●○</div>
+              </div>
+              <div class="p-card">
+                <div class="p-card-school">数据分析</div>
+                <div class="p-rule"></div>
+                <div class="p-card-desc">R Studio ●●●●○<br>Python ●●●○○<br>SPSS / JASP ●●●●○</div>
+              </div>
+            </div>
+            <div>
+              <div class="p-card">
+                <div class="p-card-school">工具</div>
+                <div class="p-rule"></div>
+                <div class="p-card-desc">Notion · Xmind · Visio</div>
+              </div>
+              <div class="p-card">
+                <div class="p-card-school">语言</div>
+                <div class="p-rule"></div>
+                <div class="p-card-desc">中文（母语）<br>英语（IELTS 6.5 / PTE 70）</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⑦ 联系我 -->
+      <div class="canvas-panel" id="panel-contact" style="width:640px;flex-direction:column;">
+        <div class="panel-head">
+          <div class="panel-label">LAYER / 联系我</div>
+          <div class="panel-title">Contact</div>
+        </div>
+        <div class="panel-body">
+          <div class="p-card">
+            <div class="p-card-school">Email</div>
+            <div class="p-card-desc">hongyun_@outlook.com</div>
+          </div>
+        </div>
+      </div>
+
+      </div><!-- /canvas-inner -->
+    </div><!-- /canvas-viewport -->
+  </div><!-- /canvas-area -->
+
+  <!-- ░░ RIGHT TOOLS ░░ -->
+  <div class="right-tools">
+    <div class="tbtn on"><svg width="18" height="18" viewBox="0 0 10 10" style="image-rendering:pixelated"><use href="#ico-pencil"/></svg></div>
+    <div class="tbtn"><svg width="18" height="18" viewBox="0 0 10 10" style="image-rendering:pixelated"><use href="#ico-eraser"/></svg></div>
+    <div class="tbtn"><svg width="18" height="18" viewBox="0 0 10 10" style="image-rendering:pixelated"><use href="#ico-fill"/></svg></div>
+    <div class="tsep"></div>
+    <div class="tbtn"><svg width="18" height="18" viewBox="0 0 10 10" style="image-rendering:pixelated"><use href="#ico-select"/></svg></div>
+    <div class="tbtn"><svg width="18" height="18" viewBox="0 0 10 10" style="image-rendering:pixelated"><use href="#ico-zoom"/></svg></div>
+    <div class="tbtn"><svg width="18" height="18" viewBox="0 0 10 10" style="image-rendering:pixelated"><use href="#ico-move"/></svg></div>
+    <div class="tsep"></div>
+    <div class="tbtn"><svg width="18" height="18" viewBox="0 0 10 10" style="image-rendering:pixelated"><use href="#ico-dropper"/></svg></div>
+    <div class="tbtn"><svg width="18" height="18" viewBox="0 0 10 10" style="image-rendering:pixelated"><use href="#ico-contour"/></svg></div>
+  </div>
+
+</div><!-- /main-area -->
+
+<!-- ── STATUS BAR ── -->
+<div class="statusbar">
+  <span class="st">x:0  y:0</span>
+  <span class="st">620x330</span>
+  <span class="st-sp"></span>
+  <span class="st">Frame 1/1</span>
+  <span class="st">1:00:00</span>
+</div>
+
+</div><!-- /app -->
+
+<script>
+/* ══ 菜单交互 ══ */
+const menuItems = document.querySelectorAll('.menu-item[data-menu]');
+menuItems.forEach(item => {
+  item.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const isOpen = this.classList.contains('open');
+    menuItems.forEach(m => m.classList.remove('open'));
+    if (!isOpen) this.classList.add('open');
+  });
+});
+document.addEventListener('click', () => menuItems.forEach(m => m.classList.remove('open')));
+
+/* File → 下载简历（暂时链接到邮箱） */
+document.getElementById('dd-download').addEventListener('click', () => {
+  alert('简历下载功能即将上线，请发邮件至 hongyun_@outlook.com 索取');
+});
+
+/* View → 放大 / 缩小 / 重置 */
+document.getElementById('dd-zoom-in').addEventListener('click', () => {
+  scale = Math.min(4, scale * 1.2); applyTransform();
+});
+document.getElementById('dd-zoom-out').addEventListener('click', () => {
+  scale = Math.max(0.2, scale * 0.8); applyTransform();
+});
+document.getElementById('dd-zoom-reset').addEventListener('click', () => {
+  panX = 0; panY = 0; scale = 1; applyTransform();
+});
+
+/* Layer 菜单 → 跳转图层 */
+document.querySelectorAll('#dd-layer-menu .dd-item').forEach(item => {
+  item.addEventListener('click', function() {
+    const target = this.dataset.target;
+    showPanel(target);
+    document.querySelectorAll('.layer-row').forEach(r => {
+      r.classList.toggle('active', r.dataset.target === target);
+      const dot = r.querySelector('.l-dot');
+      if (r.dataset.target === target) {
+        dot.style.background = '#e83020'; dot.style.borderColor = '#a01010';
+      } else {
+        dot.style.background = ''; dot.style.borderColor = '';
+      }
+    });
+  });
+});
+
+/* Help → About */
+document.getElementById('dd-about').addEventListener('click', () => {
+  document.getElementById('about-overlay').classList.add('open');
+});
+document.getElementById('about-close').addEventListener('click', () => {
+  document.getElementById('about-overlay').classList.remove('open');
+});
+document.getElementById('about-overlay').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+
+/* ══ 调色盘换色 ══ */
+document.querySelectorAll('.pc').forEach(swatch => {
+  swatch.addEventListener('click', function() {
+    const color = this.style.background;
+    /* 高亮选中色块 */
+    document.querySelectorAll('.pc').forEach(s => s.classList.remove('selected'));
+    this.classList.add('selected');
+    /* 换画布背景色 */
+    document.getElementById('canvas-viewport').style.backgroundColor = color;
+    /* 同步左下角颜色预览 */
+    document.querySelector('.cp-prev').style.background = color;
+    /* 同步 hex 输入框 */
+    document.querySelector('.cp-hex').value = color;
+  });
+});
+
+/* ══ 画布平移 & 缩放 ══ */
+const viewport = document.getElementById('canvas-viewport');
+const inner    = document.getElementById('canvas-inner');
+let panX = 0, panY = 0, scale = 1;
+let isPanning = false, startX, startY;
+
+function applyTransform() {
+  inner.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+}
+
+/* 滚轮缩放（以鼠标位置为中心） */
+viewport.addEventListener('wheel', e => {
+  e.preventDefault();
+  const rect = viewport.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const delta = e.deltaY < 0 ? 1.12 : 0.9;
+  const newScale = Math.max(0.2, Math.min(4, scale * delta));
+  panX = mx - (mx - panX) * (newScale / scale);
+  panY = my - (my - panY) * (newScale / scale);
+  scale = newScale;
+  applyTransform();
+}, { passive: false });
+
+/* 拖拽平移（点击面板以外的区域） */
+viewport.addEventListener('mousedown', e => {
+  if (e.target.closest('.canvas-panel')) return;
+  isPanning = true;
+  startX = e.clientX - panX;
+  startY = e.clientY - panY;
+  viewport.classList.add('panning');
+});
+document.addEventListener('mousemove', e => {
+  if (!isPanning) return;
+  panX = e.clientX - startX;
+  panY = e.clientY - startY;
+  applyTransform();
+});
+document.addEventListener('mouseup', () => {
+  isPanning = false;
+  viewport.classList.remove('panning');
+});
+
+/* ══ 面板切换 ══ */
+function showPanel(key) {
+  document.querySelectorAll('.canvas-panel').forEach(p => p.classList.remove('active'));
+  const panel = document.getElementById('panel-' + key);
+  if (panel) panel.classList.add('active');
+}
+
+/* 初始红点在第一行 */
+const initDot = document.getElementById('init-dot');
+if (initDot) { initDot.style.background='#e83020'; initDot.style.borderColor='#a01010'; }
+
+document.querySelectorAll('.layer-row').forEach(row => {
+  row.addEventListener('click', function() {
+    document.querySelectorAll('.layer-row').forEach(r => {
+      r.classList.remove('active');
+      const dot = r.querySelector('.l-dot');
+      dot.style.background = '';
+      dot.style.borderColor = '';
+    });
+    this.classList.add('active');
+    const dot = this.querySelector('.l-dot');
+    dot.style.background = '#e83020';
+    dot.style.borderColor = '#a01010';
+    showPanel(this.dataset.target);
+  });
+});
+</script>
+</body>
+</html>
