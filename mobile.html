@@ -152,6 +152,51 @@ body {
 .proj-date { font-size: 9px; color: #a08040; font-family: 'Press Start 2P', monospace; margin-bottom: 8px; }
 .proj-desc { font-size: 12px; color: #6a5030; line-height: 1.7; }
 .proj-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+
+/* 图片展开 */
+.proj-toggle {
+  margin-top: 12px; padding: 7px 12px;
+  background: transparent; border: 1px solid #d4b870;
+  color: #8a6020; font-size: 9px; font-family: 'Press Start 2P', monospace;
+  cursor: pointer; width: 100%; text-align: left; letter-spacing: 1px;
+}
+.proj-toggle:hover { background: #fdf5e0; }
+.proj-gallery {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  margin-top: 10px;
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.5s ease;
+}
+.proj-gallery.open { max-height: 1200px; }
+.proj-gallery img {
+  width: 100%; height: auto;
+  border: 1px solid #d4b870;
+  cursor: pointer; display: block;
+}
+/* skillhub 2列网格图片等高 */
+.proj-gallery:not(.five-col):not(.single) img {
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  object-position: top;
+}
+/* 单张图片居中 */
+.proj-gallery.single { grid-template-columns: 1fr; }
+/* 5列网格 */
+.proj-gallery.five-col { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.proj-gallery.five-col img { width: 100%; height: auto; }
+/* 图片全屏查看 */
+.img-lightbox {
+  display: none; position: fixed; top:0; left:0; right:0; bottom:0;
+  background: rgba(0,0,0,0.9); z-index: 2000;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+.img-lightbox.open { display: flex; }
+.img-lightbox img {
+  max-width: 100%; max-height: 90vh;
+  border: 2px solid #d4b870;
+  box-shadow: 0 0 0 1px #8a6020;
+}
 .proj-tag { font-size: 8px; color: #8a6020; border: 1px solid #d4b060; padding: 2px 6px; background: #fff8e8; }
 
 /* ── 技能进度条 ── */
@@ -223,12 +268,7 @@ body {
   <div class="cover-name fade-up d1" id="cover-name"></div>
   <div class="cover-en fade-up d2" id="cover-en"></div>
   <div class="cover-rule fade-up d3"></div>
-  <div class="cover-tagline fade-up d4">认知科学 × 心理学背景，<br>对人和 AI 都有好奇心，<br>习惯从「为什么」出发思考问题。</div>
-  <div class="cover-tags fade-up d4">
-    <span class="cover-tag">用户研究</span>
-    <span class="cover-tag">产品经理</span>
-    <span class="cover-tag">AI产品</span>
-  </div>
+  <div class="cover-tagline fade-up d4">持续关注 AI 领域动态，对大语言模型相关概念保持主动学习；习惯把 AI 融入日常，会 vibe coding，能把一个想法快速搭成能用的小工具。非工程背景，但不觉得这是门槛——AI 让「有想法就能动手试」成为了可能。</div>
   <div class="scroll-hint">▼ SCROLL</div>
 </div>
 
@@ -241,14 +281,16 @@ body {
   <div class="edu-card">
     <div class="edu-school">UCL — London</div>
     <div class="edu-deg">MSc 认知行为科学</div>
-    <div class="edu-date">2022.09 — 2024.01</div>
-    <div class="edu-tags"><span class="edu-tag">HCI</span><span class="edu-tag">UX Research</span><span class="edu-tag">Cognitive Science</span></div>
+    <div class="edu-date">2022.09 — 2023.12</div>
+    <div class="edu-desc" style="font-size:12px;color:#6a5030;line-height:1.7;margin:8px 0;">主修认知科学、决策科学，掌握 R Studio / Python 及跨学科研究方法。深入研究人脑工作机制（记忆、注意力、语言）、贝叶斯与前景理论等决策模型，具备认知偏差分析与实验验证能力。</div>
+    <div class="edu-tags"><span class="edu-tag">HCI</span><span class="edu-tag">UX Research</span><span class="edu-tag">Cognitive Science</span><span class="edu-tag">Decision Science</span></div>
   </div>
   <div class="edu-card">
     <div class="edu-school">Durham — UK</div>
     <div class="edu-deg">BSc 心理学（荣誉）</div>
     <div class="edu-date">2019.09 — 2022.06</div>
-    <div class="edu-tags"><span class="edu-tag">Psychology</span><span class="edu-tag">SPSS</span><span class="edu-tag">R Studio</span></div>
+    <div class="edu-desc" style="font-size:12px;color:#6a5030;line-height:1.7;margin:8px 0;">获英国心理学学会（BPS）认证学位，涵盖认知心理学、行为神经科学、社会与发展心理学等方向。掌握完整研究流程（实验设计、变量控制、APA 学术写作），学业成绩优异，获授荣誉学士学位。</div>
+    <div class="edu-tags"><span class="edu-tag">Psychology</span><span class="edu-tag">BPS Accredited</span><span class="edu-tag">SPSS</span><span class="edu-tag">R Studio</span></div>
   </div>
 </div>
 
@@ -260,22 +302,22 @@ body {
   <div class="section-title fade-up d1">工作经历</div>
   <div class="timeline" id="timeline">
     <div class="titem">
-      <div class="t-co">今元标矩科技</div>
-      <div class="t-role">培训文化发展专员</div>
-      <div class="t-date">2025.08 — 至今</div>
-      <div class="t-desc">主导外派培训及司龄文化项目全流程；探索 AI 工作流自动化。</div>
+      <div class="t-co">今元集团</div>
+      <div class="t-role">培训文化发展专员 / 海外 HRBP</div>
+      <div class="t-date">2025.08 — 2026.06</div>
+      <div class="t-desc">AI 工作流设计落地，累计沉淀 35 个可复用 Skill，推动全部门 20+ 人采用；深度参与海外 HRBP 工作，负责外籍员工全生命周期管理；起草海外派驻制度文件，策划并执行文化活动。</div>
     </div>
     <div class="titem">
       <div class="t-co">创业酵母管理咨询</div>
       <div class="t-role">学习顾问</div>
       <div class="t-date">2025.05 — 2025.08</div>
-      <div class="t-desc">B2B 课程销售，深入了解多行业痛点。</div>
+      <div class="t-desc">服务餐饮、制造业、医疗、房地产、电商等多行业企业客户，快速识别不同组织在战略、绩效及人才管理上的核心痛点，输出结构化客户画像与个性化学习方案。8 月会销门票数排名团队第二，获业绩激励奖。</div>
     </div>
     <div class="titem">
       <div class="t-co">旭化成氨纶</div>
       <div class="t-role">营业部行政实习生</div>
       <div class="t-date">2021.07 — 2021.09</div>
-      <div class="t-desc">协助销售部门日常运营，制作市场数据报告。</div>
+      <div class="t-desc">整理产品 ROICA 市场数据及竞品分析，建立用户画像；负责英文产品宣传册撰写与制作。</div>
     </div>
   </div>
 </div>
@@ -288,19 +330,41 @@ body {
   <div class="section-title fade-up d1">项目</div>
   <div class="proj-card">
     <div class="proj-name">星火计划 · 海外人才外派体系</div>
-    <div class="proj-date">2025.08 — 至今</div>
     <div class="proj-desc">从零设计完整外派管理体系，7份文件，已落地运行。</div>
     <div class="proj-tags"><span class="proj-tag">系统设计</span><span class="proj-tag">0→1落地</span></div>
   </div>
   <div class="proj-card">
     <div class="proj-name">司龄文化建设 · 周年体系重构</div>
-    <div class="proj-date">2025.08 — 至今</div>
     <div class="proj-desc">原创航海主题，设计1-20年海报及执行SOP，覆盖约1000名员工。</div>
     <div class="proj-tags"><span class="proj-tag">视觉设计</span><span class="proj-tag">员工体验</span></div>
+    <button class="proj-toggle" onclick="toggleGallery(this)">▶ 查看图片</button>
+    <div class="proj-gallery five-col">
+      <img src="images/siling/11.jpg" onclick="openLightbox(this.src)">
+      <img src="images/siling/12.jpg" onclick="openLightbox(this.src)">
+      <img src="images/siling/13.jpg" onclick="openLightbox(this.src)">
+      <img src="images/siling/14.jpg" onclick="openLightbox(this.src)">
+      <img src="images/siling/15.jpg" onclick="openLightbox(this.src)">
+      <img src="images/siling/16.jpg" onclick="openLightbox(this.src)">
+      <img src="images/siling/17.jpg" onclick="openLightbox(this.src)">
+      <img src="images/siling/18.jpg" onclick="openLightbox(this.src)">
+      <img src="images/siling/19.jpg" onclick="openLightbox(this.src)">
+      <img src="images/siling/20.jpg" onclick="openLightbox(this.src)">
+    </div>
+  </div>
+  <div class="proj-card">
+    <div class="proj-name">Skill Hub · HR AI 工作流知识库</div>
+    <div class="proj-desc">发起并推动 HR 部门 AI 工作流知识库建设，累计沉淀 35 个可复用 Skill，覆盖 8 大业务类别，推动全部门 20+ 人采用，实现经验沉淀与方法复用。</div>
+    <div class="proj-tags"><span class="proj-tag">AI 工作流</span><span class="proj-tag">知识管理</span><span class="proj-tag">内部推广</span></div>
+    <button class="proj-toggle" onclick="toggleGallery(this)">▶ 查看图片</button>
+    <div class="proj-gallery">
+      <img src="images/skillhub/1.png" onclick="openLightbox(this.src)">
+      <img src="images/skillhub/2.png" onclick="openLightbox(this.src)">
+      <img src="images/skillhub/3.png" onclick="openLightbox(this.src)">
+      <img src="images/skillhub/4.png" onclick="openLightbox(this.src)">
+    </div>
   </div>
   <div class="proj-card">
     <div class="proj-name">Vibe Coding · AI工具探索</div>
-    <div class="proj-date">2025 — 至今</div>
     <div class="proj-desc">Agent Skill / Dify知识库 / Chrome自动填表插件。</div>
     <div class="proj-tags"><span class="proj-tag">AI Agent</span><span class="proj-tag">RAG</span></div>
   </div>
@@ -312,25 +376,21 @@ body {
 <div class="screen" id="s-skills">
   <div class="section-label fade-up">// SKILLS</div>
   <div class="section-title fade-up d1">技能</div>
-  <div class="skill-row fade-up d2" style="--pct:85%">
-    <div class="skill-name"><span>Figma</span><span>●●●●○</span></div>
-    <div class="skill-bar-bg"><div class="skill-bar-fill"></div></div>
+  <div class="edu-card fade-up d2">
+    <div class="edu-school">数据分析</div>
+    <div class="edu-tags" style="margin-top:8px;"><span class="edu-tag">Python</span><span class="edu-tag">SQL</span><span class="edu-tag">R Studio</span><span class="edu-tag">SPSS</span></div>
   </div>
-  <div class="skill-row fade-up d2" style="--pct:70%">
-    <div class="skill-name"><span>R Studio</span><span>●●●●○</span></div>
-    <div class="skill-bar-bg"><div class="skill-bar-fill"></div></div>
+  <div class="edu-card fade-up d3">
+    <div class="edu-school">AI 工具</div>
+    <div class="edu-tags" style="margin-top:8px;"><span class="edu-tag">Claude Code</span><span class="edu-tag">Codex</span><span class="edu-tag">Google AI Studio</span><span class="edu-tag">Dify</span><span class="edu-tag">Coze</span></div>
   </div>
-  <div class="skill-row fade-up d3" style="--pct:60%">
-    <div class="skill-name"><span>Python</span><span>●●●○○</span></div>
-    <div class="skill-bar-bg"><div class="skill-bar-fill"></div></div>
+  <div class="edu-card fade-up d4">
+    <div class="edu-school">设计 / 协作</div>
+    <div class="edu-tags" style="margin-top:8px;"><span class="edu-tag">Figma</span><span class="edu-tag">Notion</span><span class="edu-tag">Xmind</span></div>
   </div>
-  <div class="skill-row fade-up d3" style="--pct:85%">
-    <div class="skill-name"><span>SPSS / JASP</span><span>●●●●○</span></div>
-    <div class="skill-bar-bg"><div class="skill-bar-fill"></div></div>
-  </div>
-  <div class="skill-row fade-up d4" style="--pct:90%">
-    <div class="skill-name"><span>Notion</span><span>●●●●●</span></div>
-    <div class="skill-bar-bg"><div class="skill-bar-fill"></div></div>
+  <div class="edu-card fade-up d4">
+    <div class="edu-school">语言</div>
+    <div class="edu-tags" style="margin-top:8px;"><span class="edu-tag">英语 IELTS 6.5</span><span class="edu-tag">PTE 70</span></div>
   </div>
 </div>
 
@@ -375,8 +435,29 @@ body {
   </div>
 
   <div class="contact-email" id="contact-email">hongyun_@outlook.com</div>
-  <div class="contact-note fade-up d4">招聘合作请发邮件联系<br>Vibe coded with Claude Code ♥</div>
+  <div class="contact-note fade-up d4">Vibe coded with Claude Code ♥</div>
 </div>
+
+<!-- 图片全屏查看 -->
+<div class="img-lightbox" id="lightbox" onclick="closeLightbox()">
+  <img id="lightbox-img" src="">
+</div>
+
+<script>
+function toggleGallery(btn) {
+  const gallery = btn.nextElementSibling;
+  const isOpen = gallery.classList.contains('open');
+  gallery.classList.toggle('open', !isOpen);
+  btn.textContent = isOpen ? '▶ 查看图片' : '▼ 收起图片';
+}
+function openLightbox(src) {
+  document.getElementById('lightbox-img').src = src;
+  document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+}
+</script>
 
 <script>
 /* ── 封面打字机效果 ── */
